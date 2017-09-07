@@ -7,13 +7,14 @@
 //
 
 #import "SK_CarouselView.h"
+#import <SDWebImage/UIImageView+WebCache.h>
+#import "NSString+JudgeUrl.h"
 
 @interface SK_CarouselView ()
 
 @property (nonatomic, strong) UIImageView * leftImageView;//第一个imageview
 @property (nonatomic, strong) UIImageView * cureentImageView;//当前选中的imageview
 @property (nonatomic, strong) UIImageView * rightImageView;//最后那个imageview
-
 @property (nonatomic, assign) NSInteger selectCurrentIndext;//点击选择当前的imageview
 
 @end
@@ -199,7 +200,7 @@
             if (self.selectCurrentIndext == 1) {
                 
                 self.selectCurrentIndext = 0;
-                leftImageCount = self.imageMutableArray.count - 1;
+                leftImageCount = self.imageMutableArray.count - 1 + self.selectCurrentIndext;
             } else {
                 
                 self.selectCurrentIndext = self.selectCurrentIndext - 1;
@@ -208,9 +209,7 @@
             
             rightImageCount = self.selectCurrentIndext + 1;
         }
-        
-        
-        //又滑
+    //又滑
     } else {
         
         if (self.selectCurrentIndext == self.imageMutableArray.count - 1) {
@@ -218,13 +217,14 @@
             self.selectCurrentIndext = 0;
             leftImageCount = self.imageMutableArray.count - 1;
             rightImageCount = 1;
-            
         } else {
             
             if (self.selectCurrentIndext == self.imageMutableArray.count - 2) {
+                
                 self.selectCurrentIndext = self.imageMutableArray.count - 1;
                 rightImageCount = 0;
             } else {
+                
                 self.selectCurrentIndext = self.selectCurrentIndext + 1;
                 rightImageCount = self.selectCurrentIndext + 1;
             }
@@ -232,11 +232,23 @@
         }
     }
     
-    self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray[leftImageCount]];
-    self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[rightImageCount]];
-    self.cureentImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext]];
+    [self imageCount:leftImageCount userImageView:self.leftImageView];
+    [self imageCount:rightImageCount userImageView:self.rightImageView];
+    [self imageCount:self.selectCurrentIndext userImageView:self.cureentImageView];
     self.pageController.currentPage = self.selectCurrentIndext;
     self.scrollView.contentOffset = CGPointMake(self.width, 0);
+}
+
+- (void)imageCount:(NSInteger)imageCount userImageView:(UIImageView *)userImageView {
+    
+    NSString * imageUrl = self.imageMutableArray[imageCount];
+    //判断是不是网络链接
+    if ([imageUrl isUrl]) {
+        [userImageView sd_setImageWithURL:[NSURL URLWithString:imageUrl]
+                              placeholderImage:[UIImage imageNamed:@"defaultImage"]];
+    } else {
+        userImageView.image = [UIImage imageNamed:imageUrl];
+    }
 }
 
 //当进行拖拽的时候需要先停止定时器的运行这样才不会使拖拽跟定时器冲突
@@ -246,6 +258,7 @@
 //不在拖拽的时候开启定时器
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
     [self startTimer];
-}
+} 
+
 
 @end
