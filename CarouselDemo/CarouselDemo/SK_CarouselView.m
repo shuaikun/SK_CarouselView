@@ -7,8 +7,6 @@
 //
 
 #import "SK_CarouselView.h"
-//#define SK_CarouselView_Width self.frame.size.width
-//#define SK_CarouselView_Height self.frame.size.height
 
 @interface SK_CarouselView ()
 
@@ -120,7 +118,7 @@
     if (self.timer) {
         [self stopTimer];
     }
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:5.0f
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:3.0f
                                                   target:self
                                                 selector:@selector(carouselAction)
                                                 userInfo:nil
@@ -167,7 +165,16 @@
 }
 
 #pragma mark - scrollviewDelegate
+//scrollView自动滑动下进行轮播
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    [self imageViewScrollAction:scrollView];
+}
+//拖拽进行轮播
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    [self imageViewScrollAction:scrollView];
+}
+
+- (void)imageViewScrollAction:(UIScrollView *)scrollView {
     
     //侧滑但是滑动的很小
     if (scrollView.contentOffset.x == self.width) {
@@ -175,53 +182,70 @@
     }
     
     CGFloat scrollCount = scrollView.contentOffset.x / self.width;
+    NSInteger rightImageCount = 0;
+    NSInteger leftImageCount = 0;
+    
     //左滑
     if (scrollCount == 0) {
+        
         //当前本身是第一个
         if (self.selectCurrentIndext == 0) {
             
             self.selectCurrentIndext = self.imageMutableArray.count - 1;
-            self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext - 1]];
-            self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[0]];
+            leftImageCount = self.selectCurrentIndext - 1;
+            rightImageCount = 0;
         } else {
             
             if (self.selectCurrentIndext == 1) {
+                
                 self.selectCurrentIndext = 0;
-                self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray.lastObject];
+                leftImageCount = self.imageMutableArray.count - 1;
             } else {
+                
                 self.selectCurrentIndext = self.selectCurrentIndext - 1;
-                self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext - 1]];
+                leftImageCount = self.selectCurrentIndext - 1;
             }
             
-            self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext + 1]];
+            rightImageCount = self.selectCurrentIndext + 1;
         }
         
-    //又滑
+        
+        //又滑
     } else {
         
         if (self.selectCurrentIndext == self.imageMutableArray.count - 1) {
             
             self.selectCurrentIndext = 0;
-            self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray.lastObject];
-            self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[1]];
+            leftImageCount = self.imageMutableArray.count - 1;
+            rightImageCount = 1;
             
         } else {
             
             if (self.selectCurrentIndext == self.imageMutableArray.count - 2) {
                 self.selectCurrentIndext = self.imageMutableArray.count - 1;
-                self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray.firstObject];
+                rightImageCount = 0;
             } else {
                 self.selectCurrentIndext = self.selectCurrentIndext + 1;
-                self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext + 1]];
+                rightImageCount = self.selectCurrentIndext + 1;
             }
-            
-            self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext - 1]];
+            leftImageCount = self.selectCurrentIndext - 1;
         }
     }
     
+    self.leftImageView.image = [UIImage imageNamed:self.imageMutableArray[leftImageCount]];
+    self.rightImageView.image = [UIImage imageNamed:self.imageMutableArray[rightImageCount]];
     self.cureentImageView.image = [UIImage imageNamed:self.imageMutableArray[self.selectCurrentIndext]];
     self.pageController.currentPage = self.selectCurrentIndext;
     self.scrollView.contentOffset = CGPointMake(self.width, 0);
+}
+
+//当进行拖拽的时候需要先停止定时器的运行这样才不会使拖拽跟定时器冲突
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [self stopTimer];
+}
+//不在拖拽的时候开启定时器
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+    [self startTimer];
 }
 
 @end

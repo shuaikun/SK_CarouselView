@@ -30,7 +30,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    // Do any additional setup after loading the view, typically from a nib.7
+    
     self.view.backgroundColor = [UIColor lightGrayColor];
     [self.view addSubview:self.carouseView];
     self.carouseView.imageMutableArray = [NSMutableArray arrayWithArray:@[@"huazai1",
